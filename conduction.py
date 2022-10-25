@@ -30,3 +30,36 @@ class Solver1D:
                 0.25 * (self.k[i+1] - self.k[i-1]) * (T_n[i+1] - T_n[i-1])  # Non-linear conduction term
             )
 
+
+class Solver2D:
+    def __init__(
+            self,
+            T: npt.ArrayLike[float],
+            k: float | npt.ArrayLike[float],
+            rho: float | npt.ArrayLike[float],
+            cp: float | npt.ArrayLike[float],
+            dx: float,
+            dy: float
+    ):
+        self.T = np.asarray(T)
+        self.k = np.full(T.shape, k) if isinstance(k, float) else np.asarray(k)
+        self.rho = np.full(T.shape, rho) if isinstance(rho, float) else np.asarray(rho)
+        self.cp = np.full(T.shape, cp) if isinstance(cp, float) else np.asarray(cp)
+        self.dx = dx
+        self.dy = dy
+
+        if not (self.T.shape == self.k.shape == self.rho.shape == self.k.shape):
+            raise ValueError("Arrays must have the same shape")
+
+    @njit
+    def step(self, dt):
+        T_n = np.copy(self.T)
+        for j in prange(1, self.T.shape[0]):
+            for i in prange(1, self.T.shape[1]):
+                self.T[i, j] = T_n[i, j] + dt / (self.rho[i, j] * self.cp[i, j]) * (
+                    self.k[i, j] * ((T_n[i-1, j] - 2 * T_n[i, j] + T_n[i+1, j]) / self.dx**2 +
+                                    (T_n[i, j-1] - 2 * T_n[i, j] + T_n[i, j+1]) / self.dy**2) +
+                    # Non-linear conduction term
+                    0.25 * ((self.k[i+1, j] - self.k[i-1, j]) * (T_n[i+1, j] - T_n[i-1, j]) / self.dx**2 +
+                            (self.k[i, j+1] - self.k[i, j-1]) * (T_n[i, j+1] - T_n[i, j-1]) / self.dy**2)
+                )
