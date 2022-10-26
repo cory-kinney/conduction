@@ -39,6 +39,10 @@ class Solver1D:
             )
         return T
 
+    @property
+    def max_time_step(self):
+        return self.dx**2 / (2 * np.max(self.k / (self.rho * self.cp)))
+
 
 class Solver2D:
     def __init__(
@@ -74,3 +78,7 @@ class Solver2D:
                             (k[i, j+1] - k[i, j-1]) * (T_n[i, j+1] - T_n[i, j-1]) / dy**2)
                 )
         return T
+
+    @property
+    def max_time_step(self):
+        return 1 / (2 * np.max(self.k / (self.rho * self.cp)) * (self.dx**-2 + self.dy**-2))
