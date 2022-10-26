@@ -6,16 +6,16 @@ from numba import njit, prange
 class Solver1D:
     def __init__(
             self,
-            T: npt.ArrayLike[float],
-            k: float | npt.ArrayLike[float],
-            rho: float | npt.ArrayLike[float],
-            cp: float | npt.ArrayLike[float],
+            T: npt.ArrayLike,
+            k: float | npt.ArrayLike,
+            rho: float | npt.ArrayLike,
+            cp: float | npt.ArrayLike,
             dx: float
     ):
         self.T = np.asarray(T)
-        self.k = np.full(T.shape, k) if isinstance(k, float) else np.asarray(k)
-        self.rho = np.full(T.shape, rho) if isinstance(rho, float) else np.asarray(rho)
-        self.cp = np.full(T.shape, cp) if isinstance(cp, float) else np.asarray(cp)
+        self.k = np.full(T.shape, k) if isinstance(k, (float, int)) else np.asarray(k)
+        self.rho = np.full(T.shape, rho) if isinstance(rho, (float, int)) else np.asarray(rho)
+        self.cp = np.full(T.shape, cp) if isinstance(cp, (float, int)) else np.asarray(cp)
         self.dx = dx
 
         if not (self.T.shape == self.k.shape == self.rho.shape == self.k.shape):
@@ -34,19 +34,19 @@ class Solver1D:
 class Solver2D:
     def __init__(
             self,
-            T: npt.ArrayLike[float],
-            k: float | npt.ArrayLike[float],
-            rho: float | npt.ArrayLike[float],
-            cp: float | npt.ArrayLike[float],
+            T: npt.ArrayLike,
+            k: float | npt.ArrayLike,
+            rho: float | npt.ArrayLike,
+            cp: float | npt.ArrayLike,
             dx: float,
-            dy: float
+            dy: float = None
     ):
         self.T = np.asarray(T)
-        self.k = np.full(T.shape, k) if isinstance(k, float) else np.asarray(k)
-        self.rho = np.full(T.shape, rho) if isinstance(rho, float) else np.asarray(rho)
-        self.cp = np.full(T.shape, cp) if isinstance(cp, float) else np.asarray(cp)
+        self.k = np.full(T.shape, k) if isinstance(k, (float, int)) else np.asarray(k)
+        self.rho = np.full(T.shape, rho) if isinstance(rho, (float, int)) else np.asarray(rho)
+        self.cp = np.full(T.shape, cp) if isinstance(cp, (float, int)) else np.asarray(cp)
         self.dx = dx
-        self.dy = dy
+        self.dy = dy if dy is not None else dx
 
         if not (self.T.shape == self.k.shape == self.rho.shape == self.k.shape):
             raise ValueError("Arrays must have the same shape")
