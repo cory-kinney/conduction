@@ -5,7 +5,13 @@ import numpy.typing as npt
 from numba import njit, prange
 
 
+class ConvergenceError(Exception):
+    pass
+
+
 class Solver1D:
+    stability_criterion = 0.9
+
     def __init__(
             self,
             T: npt.ArrayLike,
@@ -43,8 +49,23 @@ class Solver1D:
     def max_time_step(self):
         return self.dx**2 / (2 * np.max(self.k / (self.rho * self.cp)))
 
+    def advance_steady_state(self, *, dt: float = None, max_iter=1e6, rtol: float = 1e-6):
+        for i in range(int(max_iter)):
+            T = self.step(self.T, self.k, self.rho, self.cp, self.dx,
+                          dt if dt is not None else self.stability_criterion * self.max_time_step)
+            eps = np.max(np.abs(self.T - T) / self.T)
+            self.T = T
+
+            if eps <= rtol:
+                return i + 1, eps
+
+        raise ConvergenceError(f"Maximum number of iterations reached without relative error ({eps:.3e}) "
+                               f"meeting convergence criterion ({rtol:.3e}).")
+
 
 class Solver2D:
+    stability_criterion = 0.9
+
     def __init__(
             self,
             T: npt.ArrayLike,
@@ -78,6 +99,19 @@ class Solver2D:
                             (k[i, j+1] - k[i, j-1]) * (T_n[i, j+1] - T_n[i, j-1]) / dy**2)
                 )
         return T
+
+    def advance_steady_state(self, *, dt: float = None, max_iter=1e6, rtol: float = 1e-6):
+        for i in range(int(max_iter)):
+            T = self.step(self.T, self.k, self.rho, self.cp, self.dx,
+                          dt if dt is not None else self.stability_criterion * self.max_time_step)
+            eps = np.max(np.abs(self.T - T) / self.T)
+            self.T = T
+
+            if eps <= rtol:
+                return i + 1, eps
+
+        raise ConvergenceError(f"Maximum number of iterations reached without relative error ({eps:.3e}) "
+                               f"meeting convergence criterion ({rtol:.3e}).")
 
     @property
     def max_time_step(self):
